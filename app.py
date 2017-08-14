@@ -158,13 +158,11 @@ def check_group(set_symbols: List):
     return group_count
 
 
-
+start_time = time.time()
 set_symbols = [0,1,2]
 check_group(set_symbols)
-
-start_time = time.time()
-check_group([0,1,2,3])
 print("--- %s seconds ---" % (time.time() - start_time))
+
 
 
 """

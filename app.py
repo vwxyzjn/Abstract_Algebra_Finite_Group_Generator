@@ -91,17 +91,25 @@ def check_identity_element(matrix: List, set_symbols: List):
     """
     array = np.array(matrix)
     for e in set_symbols:
+        not_current_e = False
         for x in set_symbols:
            if not array[e][x] == array[x][e] == x:
-                return {
-                    "result": False
-                }
+                not_current_e = True
+                break
+        
+        if not_current_e:
+            continue
         
         # if this ``e`` passes all the test, return it.
         return {
             "result": True,
             "identity_number": e
         }
+
+    return {
+        "result": False,
+        "e,x": [e, x]
+    }
 
 def check_inverse(matrix: List, set_symbols: List, identity_element: int):
     """
@@ -138,11 +146,15 @@ def check_group(set_symbols: List):
     row_permutations = get_permutations_of_list(set_symbols)
     my_set_rows =[row_permutations] * len(set_symbols)
     group_count = 0
+    
+    associativity_count = 0
     for permutation in itertools.product(*my_set_rows):
     
         return_result = check_associativity(permutation, set_symbols)
         if return_result['result'] == False:
             continue
+        else:
+            associativity_count += 1
         
         return_result = check_identity_element(permutation, set_symbols)
         if return_result['result'] == False:
@@ -154,7 +166,8 @@ def check_group(set_symbols: List):
         
         print('valid group', permutation)
         group_count += 1
-        
+    
+    print(associativity_count)
     return group_count
 
 
@@ -162,7 +175,21 @@ start_time = time.time()
 set_symbols = [0,1,2]
 check_group(set_symbols)
 print("--- %s seconds ---" % (time.time() - start_time))
+## an order 3 group will generate 3 ** 9 = 19,683 permutations
+## it roughly takes about 0.15 seconds on normal machines
 
+
+## The following code will take a really long time
+## an order 4 group will generate 4 ** 16 = 4,294,967,296 permutations
+## therefore it will take estimately 4294967296 / 19683 * 0.15
+## = 32731 seconds = 9.09 hours.
+## so if you have an abundance of time, you could try.
+"""
+start_time = time.time()
+set_symbols = [0,1,2]
+check_group(set_symbols)
+print("--- %s seconds ---" % (time.time() - start_time))
+"""
 
 
 """
@@ -170,73 +197,78 @@ The following are test cases, some examples are retrieved from
 https://en.wikibooks.org/wiki/Abstract_Algebra/Group_tables
 """
 
+matrix1 = (
+    (1, 2, 3, 0),
+    (2, 3, 0, 1),
+    (3, 0, 1, 2),
+    (0, 1, 2, 3)
+)
+
+matrix2 = (
+    (1, 2, 3, 0),
+    (2, 4, 0, 1),
+    (3, 0, 1, 2),
+    (0, 1, 2, 3)
+)
+
+matrix3 = (
+    (0, 1, 2),
+    (1, 2, 0),
+    (2, 0, 1)
+)
+
+matrix4 = (
+    (0, 1, 2, 3),
+    (1, 2, 3, 0),
+    (2, 3, 0, 1),
+    (3, 0, 1, 2)
+)
+
+matrix5 = (
+    (0, 1, 2, 3),
+    (1, 3, 0, 2),
+    (2, 0, 3, 1),
+    (3, 2, 1, 0)
+)
+
+matrix6 = (
+    (1, 0, 2),
+    (0, 2, 1),
+    (2, 1, 0)
+)
+
+matrix7 = (
+    (2, 0, 1),
+    (0, 1, 2),
+    (1, 2, 0)
+)
 
 def test_check_associativity():
-    matrix1 = (
-        (1, 2, 3, 0),
-        (2, 3, 0, 1),
-        (3, 0, 1, 2),
-        (0, 1, 2, 3)
-    )
     assert check_associativity(matrix1, [0, 1, 2, 3])['result'] == True
-    
-    matrix2 = (
-        (1, 2, 3, 0),
-        (2, 4, 0, 1),
-        (3, 0, 1, 2),
-        (0, 1, 2, 3)
-    )
     assert check_associativity(matrix2, [0, 1, 2, 3])['result'] == False
-    
-    matrix3 = (
-        (0, 1, 2),
-        (1, 2, 0),
-        (2, 0, 1)
-    )
     assert check_associativity(matrix3, [0, 1, 2])['result'] == True
+    assert check_associativity(matrix6, [0, 1, 2])['result'] == False
+    assert check_associativity(matrix7, [0, 1, 2])['result'] == True
     
 def test_check_identity_element():
-    matrix3 = (
-        (0, 1, 2),
-        (1, 2, 0),
-        (2, 0, 1)
-    )
 
     assert check_identity_element(matrix3, [0,1,2])['result'] == True
     assert check_identity_element(matrix3, [0,1,2])['identity_number'] == 0
     
-    matrix4 = (
-        (0, 1, 2, 3),
-        (1, 2, 3, 0),
-        (2, 3, 0, 1),
-        (3, 0, 1, 2)
-    )
     assert check_identity_element(matrix4, [0,1,2,3])['result'] == True
     assert check_identity_element(matrix4, [0,1,2,3])['identity_number'] == 0
     
-    matrix5 = (
-        (0, 1, 2, 3),
-        (1, 3, 0, 2),
-        (2, 0, 3, 1),
-        (3, 2, 1, 0)
-    )
+
     assert check_identity_element(matrix5, [0,1,2,3])['result'] == True
     assert check_identity_element(matrix5, [0,1,2,3])['identity_number'] == 0
     
-def test_check_inverse():
-    matrix3 = (
-        (0, 1, 2),
-        (1, 2, 0),
-        (2, 0, 1)
-    )
-    assert check_inverse(matrix3, [0,1,2], 0)['result'] == True
+    assert check_identity_element(matrix7, [0,1,2])['result'] == True
+    assert check_identity_element(matrix7, [0,1,2])['identity_number'] == 1
     
-    matrix4 = (
-        (0, 1, 2, 3),
-        (1, 2, 3, 0),
-        (2, 3, 0, 1),
-        (3, 0, 1, 2)
-    )
+    assert check_identity_element(matrix6, [0,1,2])['result'] == False
+    
+def test_check_inverse():
+    assert check_inverse(matrix3, [0,1,2], 0)['result'] == True
     assert check_inverse(matrix4, [0,1,2,3], 0)['result'] == True
     
 test_check_associativity()
